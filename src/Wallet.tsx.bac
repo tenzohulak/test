@@ -1,0 +1,41 @@
+import { clusterApiUrl } from "@solana/web3.js";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { WalletConnectWalletAdapter } from "@solana/wallet-adapter-walletconnect";
+import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
+import {
+    ConnectionProvider,
+    WalletProvider,
+} from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { ReactNode, useMemo } from "react";
+import "@solana/wallet-adapter-react-ui/styles.css";
+const WALLETCONNECT_PROJECT_ID = '';
+
+function SolanaProvider({ children }: { children: ReactNode }) {
+    const solNetwork = WalletAdapterNetwork.Mainnet;
+    const endpoint = useMemo(() => clusterApiUrl(solNetwork), [solNetwork]);
+    const wallets = useMemo(
+        () => [
+            new SolflareWalletAdapter({ network: solNetwork }),
+            new WalletConnectWalletAdapter({
+                network: solNetwork, 
+                options: {
+                    projectId: WALLETCONNECT_PROJECT_ID,
+                },
+            })
+        ],
+        [solNetwork]
+    );
+
+    return (
+        <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect={true}>
+                <WalletModalProvider>
+                    {children}
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    );
+}
+
+export default SolanaProvider;
